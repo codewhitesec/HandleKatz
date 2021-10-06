@@ -1,7 +1,9 @@
 # HandleKatz
 
 This tool was implemented as part of our Brucon2021 conference talk and demonstrates the usage of **cloned handles to Lsass** in order to create an obfuscated memory dump of the same.
+
 It compiles down to an executable **living fully in its text segment**. Thus, the extracted .text segment of the PE file is fully position independent code (=PIC), meaning that it can be treated like any shellcode.
+
 The execution of HandleKatz in memory has a very small footprint, as itself does not allocate any more executable memory and can therefore efficiently be combined with concepts such as (Phantom)DLL-Hollowing as described by [@_ForrestOrr](https://www.forrest-orr.net/post/malicious-memory-artifacts-part-i-dll-hollowing). This is in contrast to PIC PE loaders, such as Donut, SRDI or Reflective Loaders which, during PE loading, allocate more executable memory.
 Additionally, it makes use of a modified version of ReactOS MiniDumpWriteDumpA using direct system calls to write an obfuscated dump to disk.
 
@@ -10,6 +12,7 @@ For detailed information please refer to the PDF file **PICYouMalware.pdf**
 ## Usage
 
 **Please note** that different compiler (versions) yield different results. This might produce a PE file with relocations.
+
 All tests were carried out using ```x86_64-w64-mingw32-gcc mingw-gcc version 11.2.0 (GCC)```. The produced PIC was successfully tested on: Windows 10 Pro 10.0.17763. On other versions of windows, API hashes might differ.
 
 To use the PIC, cast a pointer to the shellcode in executable memory and call it according to the definition:
@@ -33,7 +36,8 @@ loader.exe --pid:7331 --outfile:C:\Temp\dump.obfuscated
 
 ## Detection
 
-As cloned handles are used along with modified ReactOS code, no ProcessAccess events can be observed on Lsass. However, ProcessAccess events on programs which hold a handle to Lsass can be observed. 
+As cloned handles are used along with modified ReactOS code, no ProcessAccess events can be observed on Lsass. However, ProcessAccess events on programs which hold a handle to Lsass can be observed.
+
 Defenders can monitor for ProcessAccess masks with set **PROCESS_DUP_HANDLE (0x0040)** to identify the usage of this tool.
 
 ## Credits
