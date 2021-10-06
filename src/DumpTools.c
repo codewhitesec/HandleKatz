@@ -12,9 +12,9 @@
   * You should have received a copy of the GNU Lesser General Public
   * License along with this library; if not, write to the Free Software
   * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301, USA
-  */
+*/
  
- /* Based on https://doxygen.reactos.org/d8/d5d/minidump_8c_source.html */
+/* Based on https://doxygen.reactos.org/d8/d5d/minidump_8c_source.html */
 
 #include "DumpTools.h"
 
