@@ -7,7 +7,7 @@ It compiles down to an executable **living fully in its text segment**. Thus, th
 The execution of HandleKatz in memory has a very small footprint, as itself does not allocate any more executable memory and can therefore efficiently be combined with concepts such as (Phantom)DLL-Hollowing as described by [@_ForrestOrr](https://www.forrest-orr.net/post/malicious-memory-artifacts-part-i-dll-hollowing). This is in contrast to PIC PE loaders, such as Donut, SRDI or Reflective Loaders which, during PE loading, allocate more executable memory.
 Additionally, it makes use of a modified version of ReactOS MiniDumpWriteDumpA using direct system calls to write an obfuscated dump to disk.
 
-For detailed information please refer to the PDF file **PICYouMalware.pdf** in this repository.
+For detailed information please refer to the PDF file **PICYourMalware.pdf** in this repository.
 
 ## Usage
 
