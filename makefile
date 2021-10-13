@@ -8,7 +8,7 @@ S_SRCS := src/adjuststack.asm src/chkstk_ms.asm src/syscalls.asm
 C_SRCS := src/ApiResolve.c src/HandleKatzPIC.c src/Misc.c src/HandleTools.c src/DumpTools.c
 OBJS := $(patsubst src/%.asm,%.o,$(S_SRCS)) $(patsubst src/%.c,%.o,$(C_SRCS))
 
-all: bin/HandleKatzPIC.exe
+all: bin/HandleKatzPIC.exe bin/HandleKatz.bin bin/loader.exe
 
 bin/HandleKatzPIC.exe: $(OBJS)
 	mkdir -p $(@D)
