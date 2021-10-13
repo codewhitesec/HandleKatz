@@ -11,6 +11,8 @@ For detailed information please refer to the PDF file **PICYourMalware.pdf** in 
 
 ## Usage
 
+- **make all** to build HandleKatzPIC.exe, HandleKatz.bin and loader.exe
+
 **Please note** that different compiler (versions) yield different results. This might produce a PE file with relocations.
 
 All tests were carried out using ```x86_64-w64-mingw32-gcc mingw-gcc version 11.2.0 (GCC)```. The produced PIC was successfully tested on: Windows 10 Pro 10.0.17763. On other versions of windows, API hashes might differ.
@@ -27,11 +29,10 @@ DWORD handleKatz(BOOL b_only_recon, char* ptr_output_path, uint32_t pid, char* p
 
 For deobfuscation of the dump file, the script **Decoder.py** can be used.
 
-An example loader can be found in **loader/**:
+**Loader** implements a sample loader for HandleKatz:
 ```
 loader.exe --pid:7331 --outfile:C:\Temp\dump.obfuscated
 ```
-
 ![Usage of HandleKatz PIC](imgs/HandleKatz.png)
 
 ## Detection
@@ -49,3 +50,4 @@ Defenders can monitor for ProcessAccess masks with set **PROCESS_DUP_HANDLE (0x0
 - [@rookuu_](https://twitter.com/rookuu_) for the idea to use ReactOS MiniDumpWriteDump
 - [Outflank](https://outflank.nl/) for documenting direct syscalls and their [InlineWhispers](https://github.com/outflanknl/InlineWhispers) project
 - [React OS](https://reactos.org/) for the implementation of MiniDumpWriteDump
+- [Hilko Bengen](https://github.com/hillu) for improving the makefile
