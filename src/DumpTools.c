@@ -131,8 +131,8 @@ static  unsigned        dump_system_info(struct dump_context* dc, struct fPtrs *
 
     typedef int(WINAPI* RtlGetNtVersionNumbers)(PDWORD, PDWORD, PDWORD);
 
-    char ntdll[] = { 'n', 't', 'd', 'l', 'l', '.', 'd','l','l',0x00 };
-    char func[] = { 'R', 't', 'l','G','e','t','N','t','V','e','r','s','i','o','n','N','u','m','b','e','r','s',0x00 };
+    char ntdll[] = "ntdll.dll";
+    char func[] = "RtlGetNtVersionNumbers";
     HINSTANCE hinst = function_pointers->_LoadLibrary(ntdll);
     DWORD dwMajor, dwMinor, dwBuildNumber;
     RtlGetNtVersionNumbers proc = (RtlGetNtVersionNumbers)function_pointers->_GetProcAddress(hinst, func);
@@ -312,7 +312,7 @@ static void fetch_module_versioninfo(LPCWSTR filename, VS_FIXEDFILEINFO* ffi, st
 
     DWORD       handle;
     DWORD       sz;
-    WCHAR backslashW[] = { '\\', '\0' };
+    WCHAR backslashW[] = L"\\";
 
     //memset(ffi, 0, sizeof(*ffi));
     for (uint32_t i = 0; i < sizeof(*ffi); i++) {
@@ -494,8 +494,8 @@ static const WCHAR* get_filename(const WCHAR* name, const WCHAR* endptr, struct 
 {
 
     const WCHAR* ptr;
-    char fwd_slash[] = { '/', 0x00 };
-    char back_slash[] = { '\\', 0x00 };
+    char fwd_slash[] = "/";
+    char back_slash[] = "\\";
 
     if (!endptr) endptr = name + function_pointers->_lstrlenW(name);
     for (ptr = endptr - 1; ptr >= name; ptr--)
@@ -508,12 +508,12 @@ static const WCHAR* get_filename(const WCHAR* name, const WCHAR* endptr, struct 
 static int match_ext(const WCHAR* ptr, size_t len, struct fPtrs* function_pointers)
 {
 
-    WCHAR S_AcmW[] = { '.','a','c','m','\0' };
-    WCHAR S_DllW[] = { '.','d','l','l','\0' };
-    WCHAR S_DrvW[] = { '.','d','r','v','\0' };
-    WCHAR S_ExeW[] = { '.','e','x','e','\0' };
-    WCHAR S_OcxW[] = { '.','o','c','x','\0' };
-    WCHAR S_VxdW[] = { '.','v','x','d','\0' };
+    WCHAR S_AcmW[] = L".acm";
+    WCHAR S_DllW[] = L".dll";
+    WCHAR S_DrvW[] = L".drv";
+    WCHAR S_ExeW[] = L".exe";
+    WCHAR S_OcxW[] = L".ocx";
+    WCHAR S_VxdW[] = L".vxd";
     WCHAR* const ext[] = { S_AcmW, S_DllW, S_DrvW, S_ExeW, S_OcxW, S_VxdW, NULL };
 
     WCHAR* const* e;
@@ -532,8 +532,8 @@ static int match_ext(const WCHAR* ptr, size_t len, struct fPtrs* function_pointe
 static void module_fill_module(const WCHAR* in, WCHAR* out, size_t size, struct fPtrs * function_ptrs)
 {
 
-    WCHAR S_DotSoW[] = { '.','s','o','\0' };
-    WCHAR        S_ElfW[] = { '<','e','l','f','>','\0' };
+    WCHAR S_DotSoW[] = L".so";
+    WCHAR        S_ElfW[] = L"<elf>";
 
     const WCHAR* ptr, * endptr;
     size_t      len, l;

