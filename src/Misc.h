@@ -36,8 +36,8 @@ struct fPtrs {
     GETPROCADDRESS _GetProcAddress;
     VIRTUALQUERYEX _VirtualQueryEx;
     SETFILEPOINTEREX _SetFilePointerEx;
-    GETFILEVERSIONINFOSIZEW _GetFileVersionInfoSizeW;
-    GETFILEVERSIONINFOW _GetFileVersionInfoW;
+    GETFILEVERSIONINFOSIZEEXW _GetFileVersionInfoSizeExW;
+    GETFILEVERSIONINFOEXW _GetFileVersionInfoExW;
     VERQUERYVALUEW _VerQueryValueW;
     LSTRCPYW _lstrcpyW;
     GETMODULEFILENAMEEXW _GetModuleFileNameExW;

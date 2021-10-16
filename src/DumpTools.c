@@ -319,10 +319,10 @@ static void fetch_module_versioninfo(LPCWSTR filename, VS_FIXEDFILEINFO* ffi, st
         *((uint8_t*)(ffi) + i) = 0x00;
     }
 
-    if ((sz = function_ptrs->_GetFileVersionInfoSizeW(filename, &handle)))
+    if ((sz = function_ptrs->_GetFileVersionInfoSizeExW(0x1, filename, &handle)))
     {
         void* info = function_ptrs->_HeapAlloc(function_ptrs->_GetProcessHeap(), 0, sz);
-        if (info && function_ptrs->_GetFileVersionInfoW(filename, handle, sz, info))
+        if (info && function_ptrs->_GetFileVersionInfoExW(0x1, filename, handle, sz, info))
         {
             VS_FIXEDFILEINFO* ptr;
             UINT    len;

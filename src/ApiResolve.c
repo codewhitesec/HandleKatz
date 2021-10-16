@@ -199,6 +199,9 @@ getDllBase(unsigned long crypted_dll_hash) {
 		if (dll_name->pBuffer == NULL)
 			return FAIL;
 
+		if ((uint64_t)dll_name->pBuffer == 0x400)
+			continue;
+
 		if (unicode_djb2(toLower(dll_name->pBuffer)) == xor_hash(crypted_dll_hash))
 			return (uint64_t)ptr_module_entry->DllBase;
 

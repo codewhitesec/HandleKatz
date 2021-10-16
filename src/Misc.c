@@ -62,8 +62,8 @@ DWORD resolveFptrs(struct fPtrs* ptrs) {
     ptrs->_GetProcAddress = (GETPROCADDRESS)getFunctionPtr(CRYPTED_HASH_KERNEL32, CRYPTED_HASH_GETPROCADDRESS);
     ptrs->_VirtualQueryEx = (VIRTUALQUERYEX)getFunctionPtr(CRYPTED_HASH_KERNEL32, CRYPTED_HASH_VIRTUALQUERYEX);
     ptrs->_SetFilePointerEx = (SETFILEPOINTEREX)getFunctionPtr(CRYPTED_HASH_KERNEL32, CRYPTED_HASH_SETFILEPOINTEREX);
-    ptrs->_GetFileVersionInfoSizeW = (GETFILEVERSIONINFOSIZEW)getFunctionPtr(CRYPTED_HASH_API_MS_WIN_CORE_DLL, CRYPTED_HASH_GETFILEVERSIONINFOSIZEW);
-    ptrs->_GetFileVersionInfoW = (GETFILEVERSIONINFOW)getFunctionPtr(CRYPTED_HASH_API_MS_WIN_CORE_DLL, CRYPTED_HASH_GETFILEVERSIONINFOW);
+    ptrs->_GetFileVersionInfoSizeExW = (GETFILEVERSIONINFOSIZEEXW)getFunctionPtr(CRYPTED_HASH_API_MS_WIN_CORE_DLL, CRYPTED_HASH_GETFILEVERSIONINFOSIZEEXW);
+    ptrs->_GetFileVersionInfoExW = (GETFILEVERSIONINFOEXW)getFunctionPtr(CRYPTED_HASH_API_MS_WIN_CORE_DLL, CRYPTED_HASH_GETFILEVERSIONINFOEXW);
     ptrs->_VerQueryValueW = (VERQUERYVALUEW)getFunctionPtr(CRYPTED_HASH_API_MS_WIN_CORE_DLL, CRYPTED_HASH_VERQUERYVALUEW);
     ptrs->_lstrcpyW = (LSTRCPYW)getFunctionPtr(CRYPTED_HASH_KERNEL32, CRYPTED_HASH_LSTRCPYW);
     ptrs->_GetModuleFileNameExW = (GETMODULEFILENAMEEXW)getFunctionPtr(CRYPTED_HASH_KERNEL32, CRYPTED_HASH_GETMODULEFILENAMEEXW);
@@ -98,7 +98,7 @@ DWORD resolveFptrs(struct fPtrs* ptrs) {
         ptrs->_WriteFile == 0x00 || ptrs->_HeapAlloc == 0x00 || ptrs->_GetProcessHeap == 0x00 || ptrs->_HeapFree == 0x00 || ptrs->_HeapReAlloc == 0x00 ||
         ptrs->_SetFilePointer == 0x00 || ptrs->_LoadLibrary == 0x00 || ptrs->_GetSystemInfo == 0x00 || ptrs->_FreeLibrary == 0x00 || ptrs->_IsProcessorFeaturePresent == 0x00 ||
         ptrs->_lstrlenW == 0x00 || ptrs->_GetProcAddress == 0x00 || ptrs->_VirtualQueryEx == 0x00 || ptrs->_SetFilePointerEx == 0x00 ||
-        ptrs->_GetFileVersionInfoSizeW == 0x00 || ptrs->_GetFileVersionInfoW == 0x00 || ptrs->_VerQueryValueW == 0x00 || ptrs->_lstrcpyW == 0x00 ||
+        ptrs->_GetFileVersionInfoSizeExW == 0x00 || ptrs->_GetFileVersionInfoExW == 0x00 || ptrs->_VerQueryValueW == 0x00 || ptrs->_lstrcpyW == 0x00 ||
         ptrs->_GetModuleFileNameExW == 0x00 || ptrs->_EnumProcessModules == 0x00 || ptrs->_GetModuleInformation == 0x00 || ptrs->_GetModuleBaseNameW == 0x00
         || ptrs->_lstrcmpA == 0x00 || ptrs->_lstrcmpW == 0x00 || ptrs->_LookupPrivilegeValueA == 0x00 || ptrs->_CopyMemory == 0x00) {
         return FAIL;
