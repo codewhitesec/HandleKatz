@@ -14,7 +14,7 @@ DWORD setDebugPrivilege(struct fPtrs* function_ptrs) {
     TokenPrivileges.PrivilegeCount = 1;
     TokenPrivileges.Privileges[0].Attributes = TRUE ? SE_PRIVILEGE_ENABLED : 0;
 
-    char debug_priv[] = { 'S','e','D','e','b','u','g','P','r','i','v','i','l','e','g','e', 0x00 };
+    char debug_priv[] = "SeDebugPrivilege";
     if (!function_ptrs->_LookupPrivilegeValueA(NULL, debug_priv, &TokenPrivileges.Privileges[0].Luid)) {
         function_ptrs->_CloseHandle(hToken);
         return FAIL;
