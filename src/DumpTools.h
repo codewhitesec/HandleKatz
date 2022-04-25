@@ -4,7 +4,6 @@
 #include <dbghelp.h>
 
 #include "APIResolve.h"
-//#include "syscalls.h"
 #include "Misc.h"
 
 

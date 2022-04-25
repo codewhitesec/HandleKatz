@@ -2,7 +2,7 @@
 #define MISC_H
 
 #include "APIResolve.h"
-#include "syscalls.h"
+#include "RecycledGate.h"
 
 #include "windows.h"
 

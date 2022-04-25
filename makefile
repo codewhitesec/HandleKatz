@@ -4,8 +4,8 @@ LD := x86_64-w64-mingw32-ld
 CFLAGS := -Wall -m64 -ffunction-sections -fno-asynchronous-unwind-tables -nostdlib -fno-ident -O2
 CCLDFLAGS := -Wl,-Tsrc/linker.ld,--no-seh -DC2
 
-S_SRCS := src/adjuststack.asm src/chkstk_ms.asm src/syscalls.asm
-C_SRCS := src/ApiResolve.c src/HandleKatzPIC.c src/Misc.c src/HandleTools.c src/DumpTools.c
+S_SRCS := src/adjuststack.asm src/chkstk_ms.asm src/GateTrampolin.asm 
+C_SRCS := src/ApiResolve.c src/HandleKatzPIC.c src/Misc.c src/HandleTools.c src/DumpTools.c src/RecycledGate.c
 OBJS := $(patsubst src/%.asm,%.o,$(S_SRCS)) $(patsubst src/%.c,%.o,$(C_SRCS))
 
 all: bin/HandleKatzPIC.exe bin/HandleKatz.bin bin/loader.exe
