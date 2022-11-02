@@ -642,7 +642,7 @@ BOOL MiniDumpWriteDumpA(HANDLE hProcess, DWORD pid, HANDLE hFile, struct fPtrs* 
     if (!fetch_process_info(&dc, function_ptrs)) return FALSE;
 
     fetch_modules_info(&dc, function_ptrs);
-    nStreams = 3;
+    nStreams = 6;
     nStreams = (nStreams + 3) & ~3;
 
     // Write Header
